@@ -26,6 +26,17 @@ TEST(alinspace,returnsCorrectValues)
   ASSERT_DOUBLE_EQ(mylinspace.back(),1);
 
 }
+
+TEST(anInterval,Works)
+{
+  auto my_interval = Interval(0,-3.4);
+  ASSERT_FALSE(is_inside(0.1,my_interval));
+  ASSERT_FALSE(is_inside(-10.0,my_interval));
+  ASSERT_TRUE(is_inside(-0.1,my_interval));
+
+  ASSERT_DOUBLE_EQ(my_interval.min(),-3.4);
+  ASSERT_DOUBLE_EQ(my_interval.max(),0);
+}
 int main (int argc, char **argv)
 {
 

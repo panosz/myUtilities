@@ -3,6 +3,7 @@
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm_ext/push_back.hpp>
 
+#include <algorithm>
 namespace PanosUtilities
 {
 
@@ -22,5 +23,26 @@ namespace PanosUtilities
       boost::push_back(output, cRange | boost::adaptors::transformed(transform));
 
       return output;
+    }
+
+
+    Interval::Interval (double a, double b) noexcept
+    {
+
+      std::tie(min_,max_) = std::minmax(a,b);
+    }
+
+    double Interval::min () const noexcept
+    {
+      return min_;
+    }
+    double Interval::max () const noexcept
+    {
+      return max_;
+    }
+
+    bool is_inside (double x, const Interval& interval)
+    {
+      return ( x>= interval.min() && x<= interval.max());
     }
 }
