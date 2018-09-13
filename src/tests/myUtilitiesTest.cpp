@@ -37,6 +37,40 @@ TEST(anInterval,Works)
   ASSERT_DOUBLE_EQ(my_interval.min(),-3.4);
   ASSERT_DOUBLE_EQ(my_interval.max(),0);
 }
+
+TEST(uniform_sample_utilities, ExcludeMinWorks)
+{
+  const auto my_interval = Interval(0,3.14);
+  const size_t numOfsamples = 10;
+
+  const auto full_range = uniform_samples(my_interval,numOfsamples+1);
+
+  const auto no_min_range = uniform_samples_exclude_min(my_interval,numOfsamples);
+
+  ASSERT_DOUBLE_EQ(no_min_range.size(),numOfsamples);
+  for (int i=0;i<numOfsamples;++i)
+  ASSERT_DOUBLE_EQ(full_range[i+1],no_min_range[i]);
+
+}
+
+
+TEST(uniform_sample_utilities, ExcludeMaxWorks)
+{
+  const auto my_interval = Interval(0,3.14);
+  const size_t numOfsamples = 10;
+
+  const auto full_range = uniform_samples(my_interval,numOfsamples+1);
+
+  const auto no_max_range = uniform_samples_exclude_max(my_interval,numOfsamples);
+
+  ASSERT_DOUBLE_EQ(no_max_range.size(),numOfsamples);
+
+  for (int i=0;i<numOfsamples;++i)
+    ASSERT_DOUBLE_EQ(full_range[i],no_max_range[i]);
+
+}
+
+
 int main (int argc, char **argv)
 {
 

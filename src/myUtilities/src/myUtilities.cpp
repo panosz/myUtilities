@@ -45,4 +45,38 @@ namespace PanosUtilities
     {
       return ( x>= interval.min() && x<= interval.max());
     }
+
+
+    std::vector<double> uniform_samples (const Interval& interval, size_t numOfsamples)
+    {
+      return linspace(interval.min(),interval.max(),numOfsamples);
+    }
+
+
+    std::vector<double> uniform_samples_exclude_min (const Interval& interval, size_t numOfsamples)
+    {
+     const double distance = interval.max()-interval.min();
+
+     const double min_increase_factor = distance/(numOfsamples);
+
+     const double new_min = interval.min() + min_increase_factor;
+
+     const Interval new_interval(new_min, interval.max());
+
+     return uniform_samples(new_interval,numOfsamples);
+    }
+
+
+    std::vector<double> uniform_samples_exclude_max (const Interval& interval, size_t numOfsamples)
+    {
+      const double distance = interval.max()-interval.min();
+
+      const double max_decrease_factor = distance/(numOfsamples);
+
+      const double new_max = interval.max() - max_decrease_factor;
+
+      const Interval new_interval(interval.min(), new_max);
+
+      return uniform_samples(new_interval,numOfsamples);
+    }
 }
