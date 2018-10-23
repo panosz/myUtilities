@@ -2,6 +2,7 @@
 #include <boost/range/counting_range.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm_ext/push_back.hpp>
+#include <boost/math/constants/constants.hpp>
 
 #include <algorithm>
 namespace PanosUtilities
@@ -78,5 +79,24 @@ namespace PanosUtilities
       const Interval new_interval(interval.min(), new_max);
 
       return uniform_samples(new_interval,numOfsamples);
+    }
+
+
+    double wrap_2pi (double angle) noexcept
+    {
+      using boost::math::double_constants::one_div_two_pi;
+      using boost::math::double_constants::two_pi;
+
+
+
+      return angle - two_pi * floor(angle *one_div_two_pi);
+    }
+
+
+    double wrap_minus_pi_pi (double angle) noexcept
+    {
+      using boost::math::double_constants::pi;
+
+      return wrap_2pi(angle + pi) - pi;
     }
 }

@@ -1,9 +1,12 @@
 #include "gmock/gmock.h"
 #include "myUtilities.hpp"
+#include <boost/math/constants/constants.hpp>
 
 using namespace testing;
 using namespace PanosUtilities;
-
+using boost::math::double_constants::two_pi;
+using boost::math::double_constants::pi;
+using boost::math::double_constants::sixth_pi;
 
 
 TEST(alinspace, throwsWhenInputPointsAreLessThanTwo)
@@ -70,6 +73,97 @@ TEST(uniform_sample_utilities, ExcludeMaxWorks)
 
 }
 
+
+TEST(wrap_2pi_behaviour, LeavesAngleBetween0and2piUnchanged)
+{
+  const double small_angle = 1.2323256;
+
+  ASSERT_DOUBLE_EQ(wrap_2pi(small_angle),small_angle);
+}
+
+TEST(wrap_2pi_behaviour, Maps2piToZero)
+{
+
+  ASSERT_DOUBLE_EQ(wrap_2pi(two_pi),0);
+}
+
+TEST(wrap_2pi_behaviour, RemovesPositiveMultiplesOfTwoPiAddedToSmallPositiveAngles)
+{
+  const double small_angle = 1.2323256;
+
+  const double angle = small_angle+1000*two_pi;
+
+  ASSERT_THAT(wrap_2pi(angle),DoubleNear(small_angle,1e-12));
+
+}
+
+TEST(wrap_2pi_behaviour, RemovesNegativeMultiplesOfTwoPiAddedToSmallPositiveAngles)
+{
+  const double small_angle = 1.2323256;
+
+  const double angle = small_angle - 1000*two_pi;
+
+  ASSERT_THAT(wrap_2pi(angle),DoubleNear(small_angle,1e-12));
+
+}
+
+TEST(wrap_2pi_behaviour, MirrorsSmallNegativeAngle)
+{
+  const double small_negative_angle = -1.2323256;
+
+  ASSERT_DOUBLE_EQ(wrap_2pi(small_negative_angle),two_pi+small_negative_angle);
+
+}
+
+
+TEST(wrap_2pi_behaviour, RemovesPositiveMultiplesOfTwoPiAddedToSmallNegativeAngles)
+{
+  const double small_negative_angle = -1.2323256;
+
+  const double angle = small_negative_angle + 1000*two_pi;
+
+  ASSERT_THAT(wrap_2pi(angle),DoubleNear(small_negative_angle + two_pi,1e-12));
+
+}
+
+
+TEST(wrap_minus_pi_pi_behaviour, LeavesAngleBetweenMinus_pi_and_pi_Unchanged)
+{
+  const double small_angle = sixth_pi;
+  ASSERT_DOUBLE_EQ(wrap_minus_pi_pi(small_angle),small_angle);
+
+  const double small_negative_angle = -small_angle;
+  ASSERT_DOUBLE_EQ(wrap_minus_pi_pi(small_negative_angle),small_negative_angle);
+}
+
+TEST(wrap_minus_pi_pi_behaviour, Maps_pi_to_minus_pi)
+{
+  ASSERT_DOUBLE_EQ(wrap_minus_pi_pi(pi),-pi);
+
+}
+
+
+TEST(wrap_minus_pi_pi_behaviour, MapsCorrectlyPositiveAngles)
+{
+  const double small_angle = sixth_pi;
+  const double angle1 = small_angle + 31*pi;
+
+  ASSERT_THAT(wrap_minus_pi_pi(angle1),DoubleNear(small_angle-pi,1e-13));
+
+  const double angle2 = small_angle + 30*pi;
+  ASSERT_THAT(wrap_minus_pi_pi(angle2),DoubleNear(small_angle,1e-13));
+}
+
+TEST(wrap_minus_pi_pi_behaviour, MapsCorrectlyNegativeAngles)
+{
+  const double small_negative_angle = -sixth_pi;
+  const double angle1 = small_negative_angle - 31*pi;
+
+  ASSERT_THAT(wrap_minus_pi_pi(angle1),DoubleNear(pi+small_negative_angle,1e-13));
+
+  const double angle2 = small_negative_angle - 30*pi;
+  ASSERT_THAT(wrap_minus_pi_pi(angle2),DoubleNear(small_negative_angle,1e-13));
+}
 
 int main (int argc, char **argv)
 {
