@@ -5,6 +5,7 @@
 #include "linspace.hpp"
 #include "interval.hpp"
 #include "wrap.hpp"
+#include "zero_crossing.hpp"
 
 namespace PanosUtilities
 {
