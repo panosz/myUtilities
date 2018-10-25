@@ -1,6 +1,6 @@
 
 
-add_library(${PROJECT_NAME} SHARED src/myUtilities.cpp include/myUtilities.hpp)
+add_library(${PROJECT_NAME} SHARED src/myUtilities.cpp include/myUtilities.hpp include/linspace.hpp src/linspace.cpp include/interval.hpp src/interval.cpp include/wrap.hpp src/wrap.cpp)
 
 
 
@@ -36,7 +36,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost)
 target_include_directories(
         ${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+        $<INSTALL_INTERFACE:include>
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )

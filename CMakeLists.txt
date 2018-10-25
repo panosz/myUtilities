@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.2)
 
 
-project (myUtilities VERSION 1.0.0)
+project (myUtilities VERSION 2.0.0)
 
 
 
