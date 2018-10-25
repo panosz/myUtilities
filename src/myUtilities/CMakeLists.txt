@@ -1,6 +1,6 @@
 
 
-add_library(${PROJECT_NAME} SHARED src/myUtilities.cpp include/myUtilities.hpp)
+add_library(${PROJECT_NAME} SHARED src/myUtilities.cpp include/myUtilities.hpp include/linspace.hpp src/linspace.cpp include/interval.hpp src/interval.cpp include/wrap.hpp src/wrap.cpp)
 
 
 
