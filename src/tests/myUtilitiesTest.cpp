@@ -165,6 +165,93 @@ TEST(wrap_minus_pi_pi_behaviour, MapsCorrectlyNegativeAngles)
   ASSERT_THAT(wrap_minus_pi_pi(angle2),DoubleNear(small_negative_angle,1e-13));
 }
 
+
+TEST(zero_cross_behaviour,FindsFirstOfTwoElementsWhenChangeOfSign)
+{
+  auto values = std::vector<double>{-1,1};
+  auto zeros = std::vector<double>{};
+
+  zero_cross(std::begin(values),std::end(values),std::back_inserter(zeros));
+
+  ASSERT_EQ(zeros.size(),1);
+  ASSERT_EQ(zeros[0],-1);
+}
+
+TEST(zero_cross_behaviour,FindsNoneOfTwoElementsWhenBothPositive)
+{
+  auto values = std::vector<double>{1,2};
+  auto zeros = std::vector<double>{};
+
+  zero_cross(std::begin(values),std::end(values),std::back_inserter(zeros));
+  ASSERT_TRUE(zeros.empty());
+
+}
+
+TEST(zero_cross_behaviour,FindsNoneOfOneElementWhenNonZero)
+{
+
+  auto values = std::vector<double>{1};
+  auto zeros = std::vector<double>{};
+
+  zero_cross(std::begin(values),std::end(values),std::back_inserter(zeros));
+  ASSERT_TRUE(zeros.empty());
+}
+
+
+TEST(zero_cross_behaviour,FindsNoneOfOneElementWhenZero)
+{
+
+  auto values = std::vector<double>{0};
+  auto zeros = std::vector<double>{};
+
+  zero_cross(std::begin(values),std::end(values),std::back_inserter(zeros));
+  ASSERT_TRUE(zeros.empty());
+}
+
+TEST(zero_cross_behaviour,FindsNoneWhenAllZero)
+{
+
+  auto values = std::vector<double>{0,0,0,0};
+  auto zeros = std::vector<double>{};
+
+  zero_cross(std::begin(values),std::end(values),std::back_inserter(zeros));
+  ASSERT_TRUE(zeros.empty());
+}
+
+TEST(zero_cross_behaviour,FindsMultipleCrossings)
+{
+  auto values = std::vector<int>{-2,-1,1,-3};
+  auto expected_zeros = std::vector<int>{-1,1};
+  auto zeros = std::vector<int>{};
+  zero_cross(std::begin(values),std::end(values),std::back_inserter(zeros));
+
+  auto are_equal = std::equal(std::begin(expected_zeros),std::end(expected_zeros),std::begin(zeros));
+  ASSERT_TRUE(are_equal);
+}
+
+TEST(zero_cross_behaviour,DiscardsCrossingsWhenDifferenceGreaterThanThreshold)
+{
+  auto values = std::vector<int>{-2,-1,1,-30};
+  auto expected_filtered_zeros = std::vector<int>{-1};
+  auto filtered_zeros = std::vector<int>{};
+  zero_cross(std::begin(values),std::end(values),std::back_inserter(filtered_zeros),5);
+
+  auto are_equal = std::equal(std::begin(expected_filtered_zeros),std::end(expected_filtered_zeros),std::begin(filtered_zeros));
+  ASSERT_TRUE(are_equal);
+}
+
+TEST(zero_cross_behaviour, SupportsRanges)
+{
+  auto values = std::vector<int>{-2,-1,1,-30};
+  auto expected_filtered_zeros = std::vector<int>{-1};
+  auto filtered_zeros = std::vector<int>{};
+  zero_cross(values,std::back_inserter(filtered_zeros),5);
+  auto are_equal = std::equal(std::begin(expected_filtered_zeros),std::end(expected_filtered_zeros),std::begin(filtered_zeros));
+  ASSERT_TRUE(are_equal);
+
+}
+
+
 int main (int argc, char **argv)
 {
 

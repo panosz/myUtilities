@@ -5,6 +5,7 @@
 #ifndef MYUTILITIES_ZERO_CROSSING_HPP
 #define MYUTILITIES_ZERO_CROSSING_HPP
 #include <algorithm>
+#include <boost/range.hpp>
 
 namespace PanosUtilities
 {
@@ -20,8 +21,9 @@ namespace PanosUtilities
       return std::adjacent_find(v_begin, v_end, different_sign);
     }
 
-    template<typename Iterator, typename DiffType>
-    Iterator find_zero_cross (Iterator v_begin, Iterator v_end, DiffType max_distance)
+    template<typename Iterator>
+    Iterator find_zero_cross (Iterator v_begin, Iterator v_end,
+                              double max_distance)
     {
 
       const auto different_sign = [] (auto d1, auto d2)
@@ -56,8 +58,11 @@ namespace PanosUtilities
 
     }
 
-    template<typename OutputIterator, typename InputIterator, typename DiffType>
-    void zero_cross (InputIterator v_begin, InputIterator v_end, OutputIterator out, DiffType max_distance)
+
+
+    template<typename OutputIterator, typename InputIterator>
+    void zero_cross (InputIterator v_begin, InputIterator v_end, OutputIterator out,
+                     double max_distance)
     {
       auto v_first = find_zero_cross(v_begin, v_end, max_distance);
 
@@ -68,6 +73,20 @@ namespace PanosUtilities
         }
 
     }
+
+    template<typename OutputIterator, typename Range>
+    void zero_cross (Range range, OutputIterator out)
+    {
+      zero_cross(std::begin(range),std::end(range),out);
+    }
+
+    template<typename OutputIterator, typename Range>
+    void zero_cross (Range range, OutputIterator out,
+                    double max_distance)
+    {
+      zero_cross(std::begin(range),std::end(range), out, max_distance);
+    }
+
 }
 
 #endif //MYUTILITIES_ZERO_CROSSING_HPP
