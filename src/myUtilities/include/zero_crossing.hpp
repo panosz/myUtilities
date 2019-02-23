@@ -9,16 +9,31 @@
 
 namespace PanosUtilities
 {
+    template<typename T>
+    auto different_sign (T d1, T d2)
+    {
+      return (d1 < 0 && d2 >= 0) || (d1 > 0 && d2 <= 0);
+    }
+
     template<typename Iterator>
     Iterator find_zero_cross (Iterator v_begin, Iterator v_end)
     {
+      const auto my_fn = [] (auto x, auto y)
+      { return different_sign(x, y); };
 
-      const auto different_sign = [] (auto d1, auto d2)
+      return std::adjacent_find(v_begin, v_end, my_fn);
+    }
+
+    template<typename Iterator, typename Functor>
+    Iterator find_zero_cross_transformed (Iterator v_begin, Iterator v_end, Functor tr_function)
+    {
+
+      const auto filtered_fn = [fn = tr_function] (auto x, auto y)
       {
-          return (d1 < 0 && d2 >= 0) || (d1 > 0 && d2 <= 0);
+          return different_sign(fn(x), fn(y));
       };
 
-      return std::adjacent_find(v_begin, v_end, different_sign);
+      return std::adjacent_find(v_begin, v_end, filtered_fn);
     }
 
     template<typename Iterator>
@@ -26,23 +41,43 @@ namespace PanosUtilities
                               double max_distance)
     {
 
-      const auto different_sign = [] (auto d1, auto d2)
+      const auto not_too_far = [threshold = max_distance] (auto d1, auto d2)
       {
-          return (d1 < 0 && d2 >= 0) || (d1 > 0 && d2 <= 0);
+          return std::abs(d1 - d2) < threshold;
       };
+
+      const auto true_zero_cross = [& not_too_far] (auto d1, auto d2)
+      {
+          return different_sign(d1, d2) && not_too_far(d1, d2);
+      };
+
+      return std::adjacent_find(v_begin, v_end, true_zero_cross);
+    }
+
+    template<typename Iterator, typename Functor>
+    Iterator find_zero_cross_transformed (Iterator v_begin,
+                                          Iterator v_end,
+                                          Functor tr_function,
+                                          double max_distance)
+    {
 
       const auto not_too_far = [threshold = max_distance] (auto d1, auto d2)
       {
           return std::abs(d1 - d2) < threshold;
       };
 
-      const auto true_zero_cross = [&different_sign,
-                                    & not_too_far] (auto d1, auto d2)
+      const auto true_zero_cross = [check_valid = not_too_far] (auto d1, auto d2)
       {
-          return different_sign(d1, d2) && not_too_far(d1, d2);
+          return different_sign(d1, d2) && check_valid(d1, d2);
       };
 
-      return std::adjacent_find(v_begin, v_end, true_zero_cross);
+      const auto filtered_fn =
+          [transform = tr_function, fn = true_zero_cross] (auto x, auto y)
+          {
+              return fn(transform(x), transform(y));
+          };
+
+      return std::adjacent_find(v_begin, v_end, filtered_fn);
     }
 
     template<typename OutputIterator, typename InputIterator>
@@ -58,7 +93,21 @@ namespace PanosUtilities
 
     }
 
+    template<typename OutputIterator, typename InputIterator, typename Functor>
+    void zero_cross_transformed (InputIterator v_begin,
+                                 InputIterator v_end,
+                                 OutputIterator out,
+                                 Functor tr_function)
+    {
+      auto v_first = find_zero_cross_transformed(v_begin, v_end, tr_function);
 
+      if (v_first != v_end)
+        {
+          out = *v_first;
+          zero_cross_transformed(++v_first, v_end, out, tr_function);
+        }
+
+    }
 
     template<typename OutputIterator, typename InputIterator>
     void zero_cross (InputIterator v_begin, InputIterator v_end, OutputIterator out,
@@ -74,17 +123,49 @@ namespace PanosUtilities
 
     }
 
-    template<typename OutputIterator, typename Range>
-    void zero_cross (Range range, OutputIterator out)
+    template<typename OutputIterator, typename InputIterator, typename Functor>
+    void zero_cross_transformed (InputIterator v_begin,
+                                 InputIterator v_end,
+                                 OutputIterator out,
+                                 Functor tr_function,
+                                 double max_distance)
     {
-      zero_cross(std::begin(range),std::end(range),out);
+      auto v_first = find_zero_cross_transformed(v_begin, v_end, tr_function, max_distance);
+
+      if (v_first != v_end)
+        {
+          out = *v_first;
+          zero_cross_transformed(++v_first, v_end, out, tr_function, max_distance);
+        }
+
     }
 
-    template<typename OutputIterator, typename Range>
-    void zero_cross (Range range, OutputIterator out,
-                    double max_distance)
+    template<typename Range, typename OutputIterator>
+    void zero_cross (Range range, OutputIterator out)
     {
-      zero_cross(std::begin(range),std::end(range), out, max_distance);
+      zero_cross(std::cbegin(range), std::cend(range), out);
+    }
+
+    template<typename Range, typename OutputIterator, typename Functor>
+    void zero_cross_transformed (Range range, OutputIterator out, Functor fn)
+    {
+      zero_cross_transformed(std::cbegin(range), std::cend(range), out, fn);
+    }
+
+    template<typename Range, typename OutputIterator>
+    void zero_cross (Range range, OutputIterator out,
+                     double max_distance)
+    {
+      zero_cross(std::cbegin(range), std::cend(range), out, max_distance);
+    }
+
+    template<typename Range, typename OutputIterator, typename Functor>
+    void zero_cross_transformed (Range range,
+                                 OutputIterator out,
+                                 Functor fn,
+                                 double max_distance)
+    {
+      zero_cross_transformed(std::cbegin(range), std::cend(range), out, fn, max_distance);
     }
 
 }
