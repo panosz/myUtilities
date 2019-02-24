@@ -158,7 +158,7 @@ TEST(wrap_minus_pi_pi_behaviour, MapsCorrectlyNegativeAngles)
   ASSERT_THAT(wrap_minus_pi_pi(angle2), DoubleNear(small_negative_angle, 1e-13));
 }
 
-TEST(zero_cross_behaviour, FindsFirstOfTwoElementsWhenChangeOfSign)
+TEST(zero_cross_behaviour, FindsSecondOfTwoElementsWhenChangeOfSign)
 {
   auto values = std::vector<double>{-1, 1};
   auto zeros = std::vector<double>{};
@@ -166,10 +166,10 @@ TEST(zero_cross_behaviour, FindsFirstOfTwoElementsWhenChangeOfSign)
   zero_cross(std::cbegin(values), std::cend(values), std::back_inserter(zeros));
 
   ASSERT_EQ(zeros.size(), 1);
-  ASSERT_EQ(zeros[0], -1);
+  ASSERT_EQ(zeros[0], 1);
 }
 
-TEST(zero_cross_transformed_behaviour, FindsFirstOfTwoElementsWhenChangeOfSign)
+TEST(zero_cross_transformed_behaviour, FindsSecondOfTwoElementsWhenChangeOfSign)
 {
   using State = std::array<double, 2>;
 
@@ -184,7 +184,7 @@ TEST(zero_cross_transformed_behaviour, FindsFirstOfTwoElementsWhenChangeOfSign)
   zero_cross_transformed(std::cbegin(values), std::cend(values), std::back_inserter(zeros), pick_first);
 
   ASSERT_EQ(zeros.size(), 1);
-  ASSERT_EQ(zeros[0], (State{-1, 0}));
+  ASSERT_EQ(zeros[0], (State{1, 0}));
 }
 
 TEST(zero_cross_behaviour, FindsNoneOfTwoElementsWhenBothPositive)
@@ -230,7 +230,7 @@ TEST(zero_cross_behaviour, FindsNoneWhenAllZero)
 TEST(zero_cross_behaviour, FindsMultipleCrossings)
 {
   auto values = std::vector<int>{-2, -1, 1, -3};
-  auto expected_zeros = std::vector<int>{-1, 1};
+  auto expected_zeros = std::vector<int>{1, -3};
   auto zeros = std::vector<int>{};
   zero_cross(std::cbegin(values), std::cend(values), std::back_inserter(zeros));
 
@@ -248,8 +248,8 @@ TEST(zero_cross_transformed_behaviour, FindsMultipleCrossings)
                                          {1,  -1},
                                          {-3, -2}};
   //Going to check for when the first element of State crosses zero
-  const auto expected_zeros = std::vector<State>{{-1, -1},
-                                                 {1,  -1}};
+  const auto expected_zeros = std::vector<State>{{1, -1},
+                                                 {-3, -2}};
 
   auto zeros = std::vector<State>{};
   const auto pick_first = [] (State s)
@@ -266,7 +266,7 @@ TEST(zero_cross_transformed_behaviour, FindsMultipleCrossings)
 TEST(zero_cross_behaviour, DiscardsCrossingsWhenDifferenceGreaterThanThreshold)
 {
   const auto values = std::vector<int>{-2, -1, 1, -30};
-  auto expected_filtered_zeros = std::vector<int>{-1};
+  auto expected_filtered_zeros = std::vector<int>{1};
   auto filtered_zeros = std::vector<int>{};
 
   const double threshold = 5.0;
@@ -288,7 +288,7 @@ TEST(zero_cross_transformed_behaviour, DiscardsCrossingsWhenDifferenceGreaterTha
                                          {1,   -1},
                                          {-30, -2}};
   //Going to check for when the first element of State crosses zero
-  const auto expected_zeros = std::vector<State>{{-1, -1}};
+  const auto expected_zeros = std::vector<State>{{1, -1}};
 
   auto zeros = std::vector<State>{};
   const auto pick_first = [] (State s)
@@ -311,7 +311,7 @@ TEST(zero_cross_transformed_behaviour, DiscardsCrossingsWhenDifferenceGreaterTha
 TEST(zero_cross_behaviour, SupportsRanges)
 {
   const auto values = std::vector<int>{-2, -1, 1, -30};
-  const auto expected_filtered_zeros = std::vector<int>{-1};
+  const auto expected_filtered_zeros = std::vector<int>{1};
   auto filtered_zeros = std::vector<int>{};
   zero_cross(values, std::back_inserter(filtered_zeros), 5);
   const auto are_equal = std::equal(std::cbegin(expected_filtered_zeros),

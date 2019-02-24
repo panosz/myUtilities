@@ -9,20 +9,60 @@
 
 namespace PanosUtilities
 {
+
     template<typename T>
     auto different_sign (T d1, T d2)
     {
       return (d1 < 0 && d2 >= 0) || (d1 > 0 && d2 <= 0);
     }
 
+    template<class SinglePassIterator, class BinaryPredicate>
+    SinglePassIterator my_adjacent_find(SinglePassIterator first, SinglePassIterator last,
+                            BinaryPredicate p)
+    {
+      if (first == last) {
+          return last;
+        }
+      auto previous_value = *first;
+
+      ++first;
+
+      while ( first != last) {
+         auto cur_value = *first;
+          if (p(previous_value, cur_value)) {
+              return first;
+            }
+          previous_value = std::move(cur_value);
+          ++first;
+        }
+      return last;
+    }
+
+    /// \brief finds first zero crossing
+    /// \tparam Iterator type must satisfy the Single Pass iterator concept
+    /// \param v_begin
+    /// \param v_end
+    /// \return iterator pointing to the last of the two elements that cross zero
+    ///
+    /// Iterator::value_type must be copy constructible and copy assignable
     template<typename Iterator>
     Iterator find_zero_cross (Iterator v_begin, Iterator v_end)
     {
       const auto my_fn = [] (auto x, auto y)
       { return different_sign(x, y); };
 
-      return std::adjacent_find(v_begin, v_end, my_fn);
+      return my_adjacent_find(v_begin, v_end, my_fn);
     }
+
+
+    /// \brief finds first zero crossing. Elements are compared after applying tr_function to each
+    /// \tparam Iterator type must satisfy the Single Pass iterator concept
+    /// \param v_begin
+    /// \param v_end
+    /// \param tr_function a unary function with argument of type Iterator::value_type
+    /// \return iterator pointing to the last of the two elements that cross zero
+    ///
+    /// Iterator::value_type must be copy constructible and copy assignable
 
     template<typename Iterator, typename Functor>
     Iterator find_zero_cross_transformed (Iterator v_begin, Iterator v_end, Functor tr_function)
@@ -33,7 +73,7 @@ namespace PanosUtilities
           return different_sign(fn(x), fn(y));
       };
 
-      return std::adjacent_find(v_begin, v_end, filtered_fn);
+      return my_adjacent_find(v_begin, v_end, filtered_fn);
     }
 
     template<typename Iterator>
@@ -51,7 +91,7 @@ namespace PanosUtilities
           return different_sign(d1, d2) && not_too_far(d1, d2);
       };
 
-      return std::adjacent_find(v_begin, v_end, true_zero_cross);
+      return my_adjacent_find(v_begin, v_end, true_zero_cross);
     }
 
     template<typename Iterator, typename Functor>
@@ -77,7 +117,7 @@ namespace PanosUtilities
               return fn(transform(x), transform(y));
           };
 
-      return std::adjacent_find(v_begin, v_end, filtered_fn);
+      return my_adjacent_find(v_begin, v_end, filtered_fn);
     }
 
     template<typename OutputIterator, typename InputIterator>
@@ -88,7 +128,7 @@ namespace PanosUtilities
       if (v_first != v_end)
         {
           out = *v_first;
-          zero_cross(++v_first, v_end, out);
+          zero_cross(v_first, v_end, out);
         }
 
     }
@@ -104,7 +144,7 @@ namespace PanosUtilities
       if (v_first != v_end)
         {
           out = *v_first;
-          zero_cross_transformed(++v_first, v_end, out, tr_function);
+          zero_cross_transformed(v_first, v_end, out, tr_function);
         }
 
     }
@@ -118,7 +158,7 @@ namespace PanosUtilities
       if (v_first != v_end)
         {
           out = *v_first;
-          zero_cross(++v_first, v_end, out, max_distance);
+          zero_cross(v_first, v_end, out, max_distance);
         }
 
     }
@@ -135,7 +175,7 @@ namespace PanosUtilities
       if (v_first != v_end)
         {
           out = *v_first;
-          zero_cross_transformed(++v_first, v_end, out, tr_function, max_distance);
+          zero_cross_transformed(v_first, v_end, out, tr_function, max_distance);
         }
 
     }
