@@ -1,6 +1,7 @@
 #include "gmock/gmock.h"
 #include "myUtilities.hpp"
 #include <boost/math/constants/constants.hpp>
+#include <boost/range/algorithm.hpp>
 
 using namespace testing;
 using namespace PanosUtilities;
@@ -168,6 +169,16 @@ TEST(zero_cross_behaviour, FindsSecondOfTwoElementsWhenChangeOfSign)
   ASSERT_EQ(zeros.size(), 1);
   ASSERT_EQ(zeros[0], 1);
 }
+TEST(zero_cross_behaviour, FindsNoneOfTwoElementsWhenChangeOfSignWrongDirection)
+{
+  auto values = std::vector<double>{-1, 1};
+  auto zeros = std::vector<double>{};
+
+  int direction = -1;
+  zero_cross(std::cbegin(values), std::cend(values), std::back_inserter(zeros), direction);
+
+  ASSERT_TRUE(zeros.empty());
+}
 
 TEST(zero_cross_transformed_behaviour, FindsSecondOfTwoElementsWhenChangeOfSign)
 {
@@ -185,6 +196,28 @@ TEST(zero_cross_transformed_behaviour, FindsSecondOfTwoElementsWhenChangeOfSign)
 
   ASSERT_EQ(zeros.size(), 1);
   ASSERT_EQ(zeros[0], (State{1, 0}));
+}
+
+TEST(zero_cross_transformed_behaviour, FindsNoneOfTwoElementsWhenChangeOfSignWrongDirection)
+{
+  using State = std::array<double, 2>;
+
+  auto values = std::vector<State>{{-1, 0},
+                                   {1,  0}};
+
+  auto zeros = std::vector<State>{};
+
+  auto pick_first = [] (State s)
+  { return s[0]; };
+
+  int direction = -1;
+
+  zero_cross_transformed(std::cbegin(values),
+                         std::cend(values),
+                         std::back_inserter(zeros),
+                         pick_first, direction);
+
+  ASSERT_TRUE(zeros.empty());
 }
 
 TEST(zero_cross_behaviour, FindsNoneOfTwoElementsWhenBothPositive)
@@ -229,13 +262,26 @@ TEST(zero_cross_behaviour, FindsNoneWhenAllZero)
 
 TEST(zero_cross_behaviour, FindsMultipleCrossings)
 {
-  auto values = std::vector<int>{-2, -1, 1, -3};
-  auto expected_zeros = std::vector<int>{1, -3};
+  auto values = std::vector<int>{-2, -1, 1, -3, -2, 1};
+  auto expected_zeros = std::vector<int>{1, -3, 1};
   auto zeros = std::vector<int>{};
   zero_cross(std::cbegin(values), std::cend(values), std::back_inserter(zeros));
 
-  auto are_equal = std::equal(std::cbegin(expected_zeros),
-                              std::cend(expected_zeros), std::begin(zeros));
+  auto are_equal = boost::range::equal(expected_zeros, zeros);
+  ASSERT_TRUE(are_equal);
+}
+
+TEST(zero_cross_behaviour, FindsMultipleCrossingsOnSpecifiedDirection)
+{
+  auto values = std::vector<int>{-2, -1, 1, -3, -2, 1};
+  auto expected_zeros = std::vector<int>{1, 1};
+  auto zeros = std::vector<int>{};
+
+  int direction = 1;
+
+  zero_cross(std::cbegin(values), std::cend(values), std::back_inserter(zeros), direction);
+
+  auto are_equal = boost::range::equal(expected_zeros, zeros);
   ASSERT_TRUE(are_equal);
 }
 
@@ -245,11 +291,15 @@ TEST(zero_cross_transformed_behaviour, FindsMultipleCrossings)
 
   const auto values = std::vector<State>{{-2, 1},
                                          {-1, -1},
-                                         {1,  -1},
-                                         {-3, -2}};
+                                         {1,  -1}, // first element crossed zero
+                                         {-3, -2}, // first element crossed zero
+                                         {-2, 1},
+                                         {1,  1}};   // first element crossed zero
+
   //Going to check for when the first element of State crosses zero
-  const auto expected_zeros = std::vector<State>{{1, -1},
-                                                 {-3, -2}};
+  const auto expected_zeros = std::vector<State>{{1,  -1},
+                                                 {-3, -2},
+                                                 {1,  1}};
 
   auto zeros = std::vector<State>{};
   const auto pick_first = [] (State s)
@@ -257,9 +307,35 @@ TEST(zero_cross_transformed_behaviour, FindsMultipleCrossings)
 
   zero_cross_transformed(std::cbegin(values), std::cend(values), std::back_inserter(zeros), pick_first);
 
-  auto are_equal = std::equal(std::cbegin(expected_zeros),
-                              std::cend(expected_zeros),
-                              std::cbegin(zeros));
+  auto are_equal = boost::range::equal(expected_zeros, zeros);
+  ASSERT_TRUE(are_equal);
+}
+
+TEST(zero_cross_transformed_behaviour, FindsMultipleCrossingsOnDesiredDirection)
+{
+  using State = std::array<double, 2>;
+
+  const auto values = std::vector<State>{{-2, 1},
+                                         {-1, -1},
+                                         {1,  -1}, // first element crossed zero positive direction
+                                         {-3, -2}, // first element crossed zero negative direction
+                                         {-2, 1},
+                                         {1,  1}};   // first element crossed zero positive direction
+
+  //Going to check for when the first element of State crosses zero
+  const auto expected_zeros = std::vector<State>{{-3, -2}};
+
+  auto zeros = std::vector<State>{};
+  const auto pick_first = [] (State s)
+  { return s[0]; };
+
+  int negative_direction = -1;
+
+  zero_cross_transformed(std::cbegin(values), std::cend(values),
+                         std::back_inserter(zeros), pick_first,
+                         negative_direction);
+
+  auto are_equal = boost::range::equal(expected_zeros, zeros);
   ASSERT_TRUE(are_equal);
 }
 
@@ -273,9 +349,26 @@ TEST(zero_cross_behaviour, DiscardsCrossingsWhenDifferenceGreaterThanThreshold)
 
   zero_cross(std::cbegin(values), std::cend(values), std::back_inserter(filtered_zeros), threshold);
 
-  auto are_equal = std::equal(std::cbegin(expected_filtered_zeros),
-                              std::cend(expected_filtered_zeros),
-                              std::cbegin(filtered_zeros));
+  auto are_equal = boost::range::equal(expected_filtered_zeros, filtered_zeros);
+  ASSERT_TRUE(are_equal);
+}
+
+TEST(zero_cross_behaviour, DiscardsCrossingsWhenDifferenceGreaterThanThresholdAndDesiredDirection)
+{
+  const auto values = std::vector<int>{-2, -1, 1, 2, -1, 1, -30};
+  auto expected_filtered_zeros = std::vector<int>{-1};
+  auto filtered_zeros = std::vector<int>{};
+
+  const double threshold = 5.0;
+  const int negative_direction = -1;
+
+  zero_cross(std::cbegin(values),
+             std::cend(values),
+             std::back_inserter(filtered_zeros),
+             threshold,
+             negative_direction);
+
+  auto are_equal = boost::range::equal(expected_filtered_zeros, filtered_zeros);
   ASSERT_TRUE(are_equal);
 }
 
@@ -302,9 +395,40 @@ TEST(zero_cross_transformed_behaviour, DiscardsCrossingsWhenDifferenceGreaterTha
                          pick_first,
                          threshold);
 
-  const auto are_equal = std::equal(std::cbegin(expected_zeros),
-                                    std::cend(expected_zeros),
-                                    std::cbegin(zeros));
+  const auto are_equal = boost::range::equal(expected_zeros, zeros);
+  ASSERT_TRUE(are_equal);
+}
+
+TEST(zero_cross_transformed_behaviour, DiscardsCrossingsWhenDifferenceGreaterThanThresholdAndDesiredDirection)
+{
+  using State = std::array<double, 2>;
+
+  const auto values = std::vector<State>{{-2,  1},
+                                         {-1,  -1},
+                                         {1,   -1}, // positive zero cross (first element)
+                                         {-1,  0},  // negative zero cross (first element)
+                                         {1,   3},  // positive zero cross (first element)
+                                         {-30, -2}};// negative zero cross (first element)
+
+  //Going to check for when the first element of State crosses zero
+  const auto expected_zeros = std::vector<State>{{-1, 0}};
+
+  auto zeros = std::vector<State>{};
+  const auto pick_first = [] (State s)
+  { return s[0]; };
+
+  const double threshold = 5.0;
+
+  const int negative_direction = -1;
+
+  zero_cross_transformed(std::cbegin(values),
+                         std::cend(values),
+                         std::back_inserter(zeros),
+                         pick_first,
+                         threshold,
+                         negative_direction);
+
+  const auto are_equal = boost::range::equal(expected_zeros, zeros);
   ASSERT_TRUE(are_equal);
 }
 
@@ -314,9 +438,7 @@ TEST(zero_cross_behaviour, SupportsRanges)
   const auto expected_filtered_zeros = std::vector<int>{1};
   auto filtered_zeros = std::vector<int>{};
   zero_cross(values, std::back_inserter(filtered_zeros), 5);
-  const auto are_equal = std::equal(std::cbegin(expected_filtered_zeros),
-                                    std::cend(expected_filtered_zeros),
-                                    std::cbegin(filtered_zeros));
+  const auto are_equal = boost::range::equal(expected_filtered_zeros, filtered_zeros);
   ASSERT_TRUE(are_equal);
 
 }
