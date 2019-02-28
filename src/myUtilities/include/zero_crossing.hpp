@@ -25,22 +25,23 @@ namespace PanosUtilities
     SinglePassIterator my_adjacent_find (SinglePassIterator first, SinglePassIterator last,
                                          BinaryPredicate p)
     {
+      using ValueType = typename SinglePassIterator::value_type;
       if (first == last)
         {
           return last;
         }
-      auto previous_value = *first;
+       ValueType previous_value = *first;
 
       ++first;
 
       while (first != last)
         {
-          auto cur_value = *first;
+          ValueType cur_value = *first;
           if (p(previous_value, cur_value))
             {
               return first;
             }
-          previous_value = std::move(cur_value);
+          previous_value = cur_value;
           ++first;
         }
       return last;
