@@ -1,6 +1,6 @@
 
 
-add_library(${PROJECT_NAME} SHARED src/myUtilities.cpp include/myUtilities.hpp include/linspace.hpp src/linspace.cpp include/interval.hpp src/interval.cpp include/wrap.hpp src/wrap.cpp include/zero_crossing.hpp)
+add_library(${PROJECT_NAME} SHARED src/myUtilities.cpp include/myUtilities.hpp include/linspace.hpp src/linspace.cpp include/interval.hpp src/interval.cpp include/wrap.hpp src/wrap.cpp include/zero_crossing.hpp include/data_reading.hpp src/data_reading.cpp)
 
 
 
@@ -27,9 +27,9 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};$ENV{HOME}")
 
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED Regex)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost)
+target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost Boost::Regex)
 
 
 

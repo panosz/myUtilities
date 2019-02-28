@@ -6,6 +6,7 @@
 #include "interval.hpp"
 #include "wrap.hpp"
 #include "zero_crossing.hpp"
+#include "data_reading.hpp"
 
 namespace PanosUtilities
 {

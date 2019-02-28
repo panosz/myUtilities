@@ -1,6 +1,6 @@
 ## - Config file for the @PROJECT_NAME@ package #
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED Regex)
 
 get_filename_component(PROJECT_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
