@@ -30,7 +30,7 @@ namespace PanosUtilities
         {
           return last;
         }
-       ValueType previous_value = *first;
+      ValueType previous_value = *first;
 
       ++first;
 
@@ -59,7 +59,7 @@ namespace PanosUtilities
                               Iterator v_end,
                               int direction = 0)
     {
-      const auto my_fn = [ direction ] (auto x, auto y)
+      const auto my_fn = [direction] (auto x, auto y)
       { return different_sign(x, y, direction); };
 
       return my_adjacent_find(v_begin, v_end, my_fn);
@@ -102,9 +102,9 @@ namespace PanosUtilities
           return std::abs(d1 - d2) < threshold;
       };
 
-      const auto true_zero_cross = [& not_too_far, dir=direction] (auto d1, auto d2)
+      const auto true_zero_cross = [check_valid = not_too_far, dir = direction] (auto d1, auto d2)
       {
-          return different_sign(d1, d2, dir) && not_too_far(d1, d2);
+          return different_sign(d1, d2, dir) && check_valid(d1, d2);
       };
 
       return my_adjacent_find(v_begin, v_end, true_zero_cross);
@@ -123,7 +123,7 @@ namespace PanosUtilities
           return std::abs(d1 - d2) < threshold;
       };
 
-      const auto true_zero_cross = [check_valid = not_too_far, dir=direction] (auto d1, auto d2)
+      const auto true_zero_cross = [check_valid = not_too_far, dir = direction] (auto d1, auto d2)
       {
           return different_sign(d1, d2, dir) && check_valid(d1, d2);
       };
@@ -141,14 +141,15 @@ namespace PanosUtilities
     void zero_cross (InputIterator v_begin,
                      InputIterator v_end,
                      OutputIterator out,
-                     int direction=0)
+                     int direction = 0)
     {
+
       auto v_first = find_zero_cross(v_begin, v_end, direction);
 
-      if (v_first != v_end)
+      while (v_first != v_end)
         {
           out = *v_first;
-          zero_cross(v_first, v_end, out, direction);
+          v_first = find_zero_cross(v_first, v_end, direction);
         }
 
     }
@@ -158,14 +159,14 @@ namespace PanosUtilities
                                  InputIterator v_end,
                                  OutputIterator out,
                                  Functor tr_function,
-                                 int direction=0)
+                                 int direction = 0)
     {
       auto v_first = find_zero_cross_transformed(v_begin, v_end, tr_function, direction);
 
-      if (v_first != v_end)
+      while (v_first != v_end)
         {
           out = *v_first;
-          zero_cross_transformed(v_first, v_end, out, tr_function, direction);
+          v_first = find_zero_cross_transformed(v_first, v_end, tr_function, direction);
         }
 
     }
@@ -175,14 +176,14 @@ namespace PanosUtilities
                      InputIterator v_end,
                      OutputIterator out,
                      double max_distance,
-                     int direction=0)
+                     int direction = 0)
     {
-      auto v_first = find_zero_cross(v_begin, v_end, max_distance,direction);
+      auto v_first = find_zero_cross(v_begin, v_end, max_distance, direction);
 
-      if (v_first != v_end)
+      while (v_first != v_end)
         {
           out = *v_first;
-          zero_cross(v_first, v_end, out, max_distance, direction);
+          v_first = find_zero_cross(v_first, v_end, max_distance, direction);
         }
 
     }
@@ -193,33 +194,32 @@ namespace PanosUtilities
                                  OutputIterator out,
                                  Functor tr_function,
                                  double max_distance,
-                                 int direction=0)
+                                 int direction = 0)
     {
       auto v_first = find_zero_cross_transformed(v_begin, v_end,
                                                  tr_function,
                                                  max_distance,
                                                  direction);
 
-      if (v_first != v_end)
+      while (v_first != v_end)
         {
           out = *v_first;
-          zero_cross_transformed(v_first, v_end,
-                                 out,
-                                 tr_function,
-                                 max_distance,
-                                 direction);
+          v_first = find_zero_cross_transformed(v_first, v_end,
+                                                tr_function,
+                                                max_distance,
+                                                direction);
         }
 
     }
 
     template<typename Range, typename OutputIterator>
-    void zero_cross (Range range, OutputIterator out, int direction=0)
+    void zero_cross (Range range, OutputIterator out, int direction = 0)
     {
       zero_cross(std::cbegin(range), std::cend(range), out, direction);
     }
 
     template<typename Range, typename OutputIterator, typename Functor>
-    void zero_cross_transformed (Range range, OutputIterator out, Functor fn, int direction=0)
+    void zero_cross_transformed (Range range, OutputIterator out, Functor fn, int direction = 0)
     {
       zero_cross_transformed(std::cbegin(range), std::cend(range), out, fn, direction);
     }
@@ -228,9 +228,9 @@ namespace PanosUtilities
     void zero_cross (Range range,
                      OutputIterator out,
                      double max_distance,
-                     int direction=0)
+                     int direction = 0)
     {
-      zero_cross(std::cbegin(range), std::cend(range), out, max_distance,direction);
+      zero_cross(std::cbegin(range), std::cend(range), out, max_distance, direction);
     }
 
     template<typename Range, typename OutputIterator, typename Functor>
@@ -238,7 +238,7 @@ namespace PanosUtilities
                                  OutputIterator out,
                                  Functor fn,
                                  double max_distance,
-                                 int direction=0)
+                                 int direction = 0)
     {
       zero_cross_transformed(std::cbegin(range),
                              std::cend(range),

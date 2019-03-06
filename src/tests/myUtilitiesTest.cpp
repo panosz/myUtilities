@@ -374,29 +374,28 @@ TEST(zero_cross_behaviour, DiscardsCrossingsWhenDifferenceGreaterThanThresholdAn
 
 TEST(zero_cross_transformed_behaviour, DiscardsCrossingsWhenDifferenceGreaterThanThreshold)
 {
-  using State = std::array<double, 2>;
+  using boost::math::double_constants::pi;
+  using boost::math::double_constants::two_pi;
 
-  const auto values = std::vector<State>{{-2,  1},
-                                         {-1,  -1},
-                                         {1,   -1},
-                                         {-30, -2}};
-  //Going to check for when the first element of State crosses zero
-  const auto expected_zeros = std::vector<State>{{1, -1}};
+  const auto values = std::vector<double>{1, pi-0.1, pi+0.1, two_pi-0.1, two_pi+0.1 };
+  //Going to check for when we cross x = 2*n * pi,
+  //usage of wrap_minus_pi_pi will introduce artificial crossings at (2*n+1)*pi.
+  //artificial crossings will be discarted by using a threshold
+  const auto expected_zeros = std::vector<double>{two_pi+0.1};
 
-  auto zeros = std::vector<State>{};
-  const auto pick_first = [] (State s)
-  { return s[0]; };
+  auto zeros = std::vector<double>{};
 
-  const double threshold = 5.0;
+
+  const double threshold = 3.0;
 
   zero_cross_transformed(std::cbegin(values),
                          std::cend(values),
                          std::back_inserter(zeros),
-                         pick_first,
+                         wrap_minus_pi_pi,
                          threshold);
 
-  const auto are_equal = boost::range::equal(expected_zeros, zeros);
-  ASSERT_TRUE(are_equal);
+  ASSERT_EQ(zeros.size(),expected_zeros.size());
+  ASSERT_DOUBLE_EQ((zeros[0]),(expected_zeros[0]));
 }
 
 TEST(zero_cross_transformed_behaviour, DiscardsCrossingsWhenDifferenceGreaterThanThresholdAndDesiredDirection)
