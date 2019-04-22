@@ -229,6 +229,16 @@ TEST(zero_cross_behaviour, FindsNoneOfTwoElementsWhenBothPositive)
   ASSERT_TRUE(zeros.empty());
 
 }
+TEST(copy_util_zero_cross_behaviour, CopiesBothOfTwoElementsWhenBothPositive)
+{
+  auto values = std::vector<double>{1, 2};
+  auto zeros = std::vector<double>{};
+
+  auto my_iter=copy_until_zero_cross(std::cbegin(values), std::cend(values), std::back_inserter(zeros));
+  ASSERT_TRUE((boost::range::equal(values,zeros)));
+
+  ASSERT_TRUE((my_iter==values.cbegin()));
+}
 
 TEST(zero_cross_behaviour, FindsNoneOfOneElementWhenNonZero)
 {

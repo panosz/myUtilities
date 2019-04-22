@@ -47,6 +47,48 @@ namespace PanosUtilities
       return last;
     }
 
+    /// \brief Copies until the binary predicate for adjacent elements is satisfied
+    /// \tparam SinglePassIterator
+    /// \tparam OutputIterator
+    /// \tparam BinaryPredicate
+    /// \param first
+    /// \param last
+    /// \param out
+    /// \param p
+    /// \return SinglePassIterator pointing to the second element of the first pair to satisfy the binary predicate p.
+    ///  If the predicate is not satisfied, copies the whole range and returns Iterator pointing to last.
+    ///
+    template<class SinglePassIterator, class OutputIterator, class BinaryPredicate>
+    SinglePassIterator copy_until_adjacent (SinglePassIterator first, SinglePassIterator last,
+                                            OutputIterator out,
+                                            BinaryPredicate p)
+    {
+      using ValueType = typename SinglePassIterator::value_type;
+      if (first == last)
+        {
+          return last;
+        }
+      ValueType previous_value = *first;
+      *out=previous_value;
+
+      ++first;++out;
+
+      while (first != last)
+        {
+          ValueType cur_value = *first;
+          *out=cur_value;
+          ++out;
+
+          if (p(previous_value, cur_value))
+            {
+              return first;
+            }
+          previous_value = cur_value;
+          ++first;
+        }
+      return last;
+    }
+
     /// \brief finds first zero crossing
     /// \tparam Iterator type must satisfy the Single Pass iterator concept
     /// \param v_begin
@@ -65,6 +107,27 @@ namespace PanosUtilities
       return my_adjacent_find(v_begin, v_end, my_fn);
     }
 
+   /// \brief Copies until zero crossing
+   /// \tparam SinglePassIterator
+   /// \param v_begin
+   /// \param v_end
+   /// \param direction
+   /// \return iterator pointing to element after zero cross
+
+    /// \return SinglePassIterator pointing to the second element of the first pair to cross zero.
+    ///  If there is no zero-crossing, copies the whole range and returns Iterator pointing to last.
+    ///
+    template<typename SinglePassIterator, typename OutputIterator>
+    SinglePassIterator copy_until_zero_cross (SinglePassIterator v_begin,
+                              SinglePassIterator v_end,
+                              OutputIterator out,
+                              int direction = 0)
+    {
+      const auto my_fn = [direction] (auto x, auto y)
+      { return different_sign(x, y, direction); };
+
+      return copy_until_adjacent(v_begin, v_end, out, my_fn);
+    }
 
     /// \brief finds first zero crossing. Elements are compared after applying tr_function to each
     /// \tparam Iterator type must satisfy the Single Pass iterator concept
