@@ -234,10 +234,10 @@ TEST(copy_util_zero_cross_behaviour, CopiesBothOfTwoElementsWhenBothPositive)
   auto values = std::vector<double>{1, 2};
   auto zeros = std::vector<double>{};
 
-  auto my_iter=copy_until_zero_cross(std::cbegin(values), std::cend(values), std::back_inserter(zeros));
-  ASSERT_TRUE((boost::range::equal(values,zeros)));
+  auto my_iter = copy_until_zero_cross(std::cbegin(values), std::cend(values), std::back_inserter(zeros));
+  ASSERT_TRUE((boost::range::equal(values, zeros)));
 
-  ASSERT_TRUE((my_iter==values.cbegin()));
+  ASSERT_TRUE((my_iter == values.cend()));
 }
 
 TEST(zero_cross_behaviour, FindsNoneOfOneElementWhenNonZero)
@@ -387,14 +387,13 @@ TEST(zero_cross_transformed_behaviour, DiscardsCrossingsWhenDifferenceGreaterTha
   using boost::math::double_constants::pi;
   using boost::math::double_constants::two_pi;
 
-  const auto values = std::vector<double>{1, pi-0.1, pi+0.1, two_pi-0.1, two_pi+0.1 };
+  const auto values = std::vector<double>{1, pi - 0.1, pi + 0.1, two_pi - 0.1, two_pi + 0.1};
   //Going to check for when we cross x = 2*n * pi,
   //usage of wrap_minus_pi_pi will introduce artificial crossings at (2*n+1)*pi.
   //artificial crossings will be discarted by using a threshold
-  const auto expected_zeros = std::vector<double>{two_pi+0.1};
+  const auto expected_zeros = std::vector<double>{two_pi + 0.1};
 
   auto zeros = std::vector<double>{};
-
 
   const double threshold = 3.0;
 
@@ -404,8 +403,8 @@ TEST(zero_cross_transformed_behaviour, DiscardsCrossingsWhenDifferenceGreaterTha
                          wrap_minus_pi_pi,
                          threshold);
 
-  ASSERT_EQ(zeros.size(),expected_zeros.size());
-  ASSERT_DOUBLE_EQ((zeros[0]),(expected_zeros[0]));
+  ASSERT_EQ(zeros.size(), expected_zeros.size());
+  ASSERT_DOUBLE_EQ((zeros[0]), (expected_zeros[0]));
 }
 
 TEST(zero_cross_transformed_behaviour, DiscardsCrossingsWhenDifferenceGreaterThanThresholdAndDesiredDirection)
@@ -438,6 +437,46 @@ TEST(zero_cross_transformed_behaviour, DiscardsCrossingsWhenDifferenceGreaterTha
                          negative_direction);
 
   const auto are_equal = boost::range::equal(expected_zeros, zeros);
+  ASSERT_TRUE(are_equal);
+}
+
+TEST(copy_until_zero_cross_transformed_behaviour,
+     DiscardsCrossingsWhenDifferenceGreaterThanThresholdAndDesiredDirection)
+{
+  using State = std::array<double, 2>;
+
+  const auto values = std::vector<State>{{-2,   1},
+                                         {-1,   -1},
+                                         {30,   -1}, // positive zero cross (first element)
+                                         {-1,   0},  // negative zero cross (first element)
+                                         {1,    3},  // positive zero cross (first element)
+                                         {-0.1, -2}};// negative zero cross (first element)
+
+  //Going to check for when the first element of State crosses zero on a positive direction, with some specified
+  //upper threshold
+
+  const double threshold = 5.0;
+  const int positive_direction = 1;
+  const auto expected_copy = std::vector<State>{{-2, 1},
+                                                  {-1, -1},
+                                                  {30, -1}, // positive zero cross (first element)
+                                                  {-1, 0},  // negative zero cross (first element)
+                                                  {1,  3}};  // positive zero cross (first element)
+
+  auto copy = std::vector<State>{};
+  const auto pick_first = [] (State s)
+  { return s[0]; };
+
+
+
+  copy_until_zero_cross_transformed(std::cbegin(values),
+                                    std::cend(values),
+                                    std::back_inserter(copy),
+                                    pick_first,
+                                    threshold,
+                                    positive_direction);
+
+  const auto are_equal = boost::range::equal(expected_copy, copy);
   ASSERT_TRUE(are_equal);
 }
 

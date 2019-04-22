@@ -69,14 +69,15 @@ namespace PanosUtilities
           return last;
         }
       ValueType previous_value = *first;
-      *out=previous_value;
+      *out = previous_value;
 
-      ++first;++out;
+      ++first;
+      ++out;
 
       while (first != last)
         {
           ValueType cur_value = *first;
-          *out=cur_value;
+          *out = cur_value;
           ++out;
 
           if (p(previous_value, cur_value))
@@ -107,21 +108,21 @@ namespace PanosUtilities
       return my_adjacent_find(v_begin, v_end, my_fn);
     }
 
-   /// \brief Copies until zero crossing
-   /// \tparam SinglePassIterator
-   /// \param v_begin
-   /// \param v_end
-   /// \param direction
-   /// \return iterator pointing to element after zero cross
+    /// \brief Copies until zero crossing
+    /// \tparam SinglePassIterator
+    /// \param v_begin
+    /// \param v_end
+    /// \param direction
+    /// \return iterator pointing to element after zero cross
 
     /// \return SinglePassIterator pointing to the second element of the first pair to cross zero.
     ///  If there is no zero-crossing, copies the whole range and returns Iterator pointing to last.
     ///
     template<typename SinglePassIterator, typename OutputIterator>
     SinglePassIterator copy_until_zero_cross (SinglePassIterator v_begin,
-                              SinglePassIterator v_end,
-                              OutputIterator out,
-                              int direction = 0)
+                                              SinglePassIterator v_end,
+                                              OutputIterator out,
+                                              int direction = 0)
     {
       const auto my_fn = [direction] (auto x, auto y)
       { return different_sign(x, y, direction); };
@@ -153,6 +154,32 @@ namespace PanosUtilities
       return my_adjacent_find(v_begin, v_end, filtered_fn);
     }
 
+    /// \brief Copies until zero crossing. Elements are compared after applying tr_function to each
+    /// \tparam SinglePassIterator
+    /// \tparam OutputIterator
+    /// \tparam Functor
+    /// \param v_begin
+    /// \param v_end
+    /// \param out
+    /// \param tr_function a unary function with argument of type Iterator::value_type
+    /// \param direction
+    /// \return SinglePassIterator pointing to the second element of the first pair to cross zero.
+    ///  If there is no zero-crossing, copies the whole range and returns Iterator pointing to last.
+    template<typename SinglePassIterator, typename OutputIterator, typename Functor>
+    SinglePassIterator copy_until_zero_cross_transformed (SinglePassIterator v_begin,
+                                                          SinglePassIterator v_end,
+                                                          OutputIterator out,
+                                                          Functor tr_function,
+                                                          int direction = 0)
+    {
+      const auto filtered_fn = [fn = tr_function, dir = direction] (auto x, auto y)
+      {
+          return different_sign(fn(x), fn(y), dir);
+      };
+
+      return copy_until_adjacent(v_begin, v_end, out, filtered_fn);
+    }
+
     template<typename Iterator>
     Iterator find_zero_cross (Iterator v_begin,
                               Iterator v_end,
@@ -171,6 +198,40 @@ namespace PanosUtilities
       };
 
       return my_adjacent_find(v_begin, v_end, true_zero_cross);
+    }
+
+
+    /// \brief Copies until zero crossing. Zero crossing is valid only if the distance between adjacent elements
+    /// is smaller than max_distance
+    /// \tparam SinglePassIterator
+    /// \param v_begin
+    /// \param v_end
+    /// \param out
+    /// \param max_distance
+    /// \param direction
+    /// \return iterator pointing to element after zero cross
+
+    /// \return SinglePassIterator pointing to the second element of the first pair to cross zero.
+    ///  If there is no zero-crossing, copies the whole range and returns Iterator pointing to last.
+    ///
+    template<typename SinglePassIterator, typename OutputIterator>
+    SinglePassIterator copy_until_zero_cross (SinglePassIterator v_begin,
+                                              SinglePassIterator v_end,
+                                              OutputIterator out,
+                                              double max_distance,
+                                              int direction = 0)
+    {
+      const auto not_too_far = [threshold = max_distance] (auto d1, auto d2)
+      {
+          return std::abs(d1 - d2) < threshold;
+      };
+
+      const auto true_zero_cross = [check_valid = not_too_far, dir = direction] (auto d1, auto d2)
+      {
+          return different_sign(d1, d2, dir) && check_valid(d1, d2);
+      };
+
+      return copy_until_adjacent(v_begin, v_end, out, true_zero_cross);
     }
 
     template<typename Iterator, typename Functor>
@@ -198,6 +259,50 @@ namespace PanosUtilities
           };
 
       return my_adjacent_find(v_begin, v_end, filtered_fn);
+    }
+
+    /// \brief Copies until zero crossing. Elements are compared after applying tr_function to each.
+    /// Zero crossing is valid only if the distance between the adjacent transformed elements
+    /// is smaller than max_distance
+    /// \tparam SinglePassIterator
+    /// \param v_begin
+    /// \param v_end
+    /// \param out
+    /// \param tr_function a unary function with argument of type Iterator::value_type
+    /// \param max_distance
+    /// \param direction
+    /// \return iterator pointing to element after zero cross
+
+    /// \return SinglePassIterator pointing to the second element of the first pair to cross zero.
+    ///  If there is no zero-crossing, copies the whole range and returns Iterator pointing to last.
+    ///
+    template<typename SinglePassIterator,
+        typename OutputIterator,
+        typename Functor>
+    SinglePassIterator
+    copy_until_zero_cross_transformed (SinglePassIterator v_begin,
+                                       SinglePassIterator v_end,
+                                       OutputIterator out,
+                                       Functor tr_function,
+                                       double max_distance,
+                                       int direction = 0)
+    {
+      const auto not_too_far = [threshold = max_distance] (auto d1, auto d2)
+      {
+          return std::abs(d1 - d2) < threshold;
+      };
+
+      const auto true_zero_cross = [check_valid = not_too_far, dir = direction] (auto d1, auto d2)
+      {
+          return different_sign(d1, d2, dir) && check_valid(d1, d2);
+      };
+
+      const auto filtered_fn =
+          [transform = tr_function, fn = true_zero_cross] (auto x, auto y)
+          {
+              return fn(transform(x), transform(y));
+          };
+      return copy_until_adjacent(v_begin, v_end, out, filtered_fn);
     }
 
     template<typename OutputIterator, typename InputIterator>
